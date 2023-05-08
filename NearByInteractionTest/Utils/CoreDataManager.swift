@@ -44,8 +44,6 @@ class CoreDataManager {
 
       let buddy = Buddy(context: persistentContainer.viewContext)
       buddy.characterName = characterName
-//        let picture = Picture(context: persistentContainer.viewContext)
-//        picture.content = content
 
         do {
             try persistentContainer.viewContext.save()
@@ -90,17 +88,6 @@ class CoreDataManager {
         }
 
     }
-
-//    func readKeyword() -> [Keyword] {
-//        let fetchRequest: NSFetchRequest<Keyword> = Keyword.fetchRequest()
-//
-//        do{
-//            return try persistentContainer.viewContext.fetch(fetchRequest)
-//        } catch {
-//            return []
-//        }
-//    }
-    
     
     func updateUser() {
 

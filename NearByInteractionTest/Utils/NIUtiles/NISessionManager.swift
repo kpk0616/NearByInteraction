@@ -15,30 +15,30 @@ class TranData: NSObject, NSCoding {
     let isBumped : Bool
     let kalories : [Int]
     let nickname : String
-    let image : UIImage
+    let isDone: Bool
     
-    init(token : NIDiscoveryToken, isBumped : Bool = false, keywords : [Int], nickname : String = "", image : UIImage = .add) {
+    init(token : NIDiscoveryToken, isBumped : Bool = false, kalories: [Int] = [], nickname : String = "", isDone: Bool = false) {
         self.token = token
         self.isBumped = isBumped
-        self.kalories = keywords
+        self.kalories = kalories
         self.nickname = nickname
-        self.image = image
+        self.isDone = isDone
     }
     
     func encode(with coder: NSCoder) {
         coder.encode(self.token, forKey: "token")
         coder.encode(self.isBumped, forKey: "isMatched")
-        coder.encode(self.kalories, forKey: "keywords")
+        coder.encode(self.kalories, forKey: "kalories")
         coder.encode(self.nickname, forKey: "nickname")
-        coder.encode(self.image, forKey: "image")
+        coder.encode(self.isDone, forKey: "isdone")
     }
     
     required init?(coder: NSCoder) {
         self.token = coder.decodeObject(forKey: "token") as! NIDiscoveryToken
         self.isBumped = coder.decodeBool(forKey: "isMatched")
         self.nickname = coder.decodeObject(forKey: "nickname") as! String
-        self.kalories = coder.decodeObject(forKey: "keywords") as! [Int]
-        self.image = coder.decodeObject(forKey: "image") as! UIImage
+        self.kalories = coder.decodeObject(forKey: "kalories") as! [Int]
+        self.isDone = (coder.decodeObject(forKey: "isdone") != nil)
     }
 }
 
@@ -56,7 +56,6 @@ class NISessionManager: NSObject, ObservableObject {
     var peerTokensMapping = [NIDiscoveryToken:MCPeerID]()
     
     let nearbyDistanceThreshold: Float = 0.08 // 범프 한계 거리
-//    let hapticManager = HapticManager()
     
     // 나의 정보
     @Published var myNickname : String = ""
@@ -65,8 +64,8 @@ class NISessionManager: NSObject, ObservableObject {
     
     // 범프된 상대 정보
     @Published var bumpedName = ""
-    @Published var bumpedKeywords : [Int] = []
-    @Published var bumpedImage : UIImage?
+    @Published var bumpedKalories = [0]
+    @Published var bumpedisDone = false
     
     override init() {
         super.init()
@@ -193,8 +192,7 @@ class NISessionManager: NSObject, ObservableObject {
             if !self.isBumped {
                 self.isBumped = true
                 bumpedName = receivedData.nickname
-                bumpedKeywords = receivedData.kalories
-                bumpedImage = receivedData.image
+                bumpedKalories = receivedData.kalories
                 DispatchQueue.global(qos: .userInitiated).async {
                     self.shareMyData(token: receivedData.token, peer: peer)
                 }
@@ -217,7 +215,7 @@ class NISessionManager: NSObject, ObservableObject {
     }
 
     func shareMyDiscoveryToken(token: NIDiscoveryToken, peer: MCPeerID) {
-        let tranData = TranData(token: token, keywords: myKeywords)
+        let tranData = TranData(token: token)
         
         guard let encodedData = try? NSKeyedArchiver.archivedData(withRootObject: tranData, requiringSecureCoding: false) else {
             //            fatalError("Unexpectedly failed to encode discovery token.")
@@ -237,7 +235,7 @@ class NISessionManager: NSObject, ObservableObject {
             }
         }
         
-        let tranData = TranData(token: token, isBumped: true, keywords: myKeywords, nickname: myNickname, image: resizedImage)
+        let tranData = TranData(token: token, isBumped: true, nickname: myNickname, isDone: true)
         
         guard let encodedData = try? NSKeyedArchiver.archivedData(withRootObject: tranData, requiringSecureCoding: false) else {
             //            fatalError("Unexpectedly failed to encode discovery token.")
